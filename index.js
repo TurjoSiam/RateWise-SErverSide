@@ -5,7 +5,7 @@ const cors = require('cors');
 const app = express();
 const port = process.env.PORT || 5000;
 
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 
 
 app.use(cors());
@@ -44,6 +44,21 @@ async function run() {
         app.get("/allservices", async(req, res) => {
             const cursor = serviceCollection.find();
             const result = await cursor.toArray();
+            res.send(result);
+        })
+
+        app.get("/allservices/:id", async(req, res) => {
+            const id = req.params.id;
+            const query = {_id: new ObjectId(id)};
+            const result = await serviceCollection.findOne(query);
+            res.send(result);
+        })
+
+
+
+        app.post("/allservices", async(req, res) => {
+            const newService = req.body;
+            const result = await serviceCollection.insertOne(newService);
             res.send(result);
         })
 
