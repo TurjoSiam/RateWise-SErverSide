@@ -34,6 +34,7 @@ async function run() {
 
         // service related api
         const serviceCollection = client.db("reviewWebsite").collection("services");
+        const reviewCollection = client.db("reviewWebsite").collection("reviews");
 
         app.get("/services" , async(req, res) => {
             const cursor = serviceCollection.find().limit(6);
@@ -54,14 +55,19 @@ async function run() {
             res.send(result);
         })
 
-
-
         app.post("/allservices", async(req, res) => {
             const newService = req.body;
             const result = await serviceCollection.insertOne(newService);
             res.send(result);
         })
 
+
+        // service review related api
+        app.post("/service-reviews", async(req, res) => {
+            const newReview = req.body;
+            const result = await reviewCollection.insertOne(newReview);
+            res.send(result);
+        })
 
 
 
