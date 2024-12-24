@@ -31,6 +31,24 @@ async function run() {
         // Connect the client to the server	(optional starting in v4.7)
         // Send a ping to confirm a successful connection
         console.log("Pinged your deployment. You successfully connected to MongoDB!");
+
+        // service related api
+        const serviceCollection = client.db("reviewWebsite").collection("services");
+
+        app.get("/services" , async(req, res) => {
+            const cursor = serviceCollection.find().limit(6);
+            const result = await cursor.toArray();
+            res.send(result);
+        })
+
+
+
+
+
+
+
+
+
     } finally {
         // Ensures that the client will close when you finish/error
     }
