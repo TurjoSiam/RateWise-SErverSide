@@ -36,26 +36,26 @@ async function run() {
         const serviceCollection = client.db("reviewWebsite").collection("services");
         const reviewCollection = client.db("reviewWebsite").collection("reviews");
 
-        app.get("/services" , async(req, res) => {
+        app.get("/services", async (req, res) => {
             const cursor = serviceCollection.find().limit(6);
             const result = await cursor.toArray();
             res.send(result);
         })
 
-        app.get("/allservices", async(req, res) => {
+        app.get("/allservices", async (req, res) => {
             const cursor = serviceCollection.find();
             const result = await cursor.toArray();
             res.send(result);
         })
 
-        app.get("/allservices/:id", async(req, res) => {
+        app.get("/allservices/:id", async (req, res) => {
             const id = req.params.id;
-            const query = {_id: new ObjectId(id)};
+            const query = { _id: new ObjectId(id) };
             const result = await serviceCollection.findOne(query);
             res.send(result);
         })
 
-        app.post("/allservices", async(req, res) => {
+        app.post("/allservices", async (req, res) => {
             const newService = req.body;
             const result = await serviceCollection.insertOne(newService);
             res.send(result);
@@ -63,11 +63,21 @@ async function run() {
 
 
         // service review related api
-        app.post("/service-reviews", async(req, res) => {
+
+        app.get("/service-reviews", async (req, res) => {
+            const email = req.query.email;
+            const query = email? { reviewerEmail: email } : {};
+            const result = await reviewCollection.find(query).toArray();
+            res.send(result);
+        })
+
+        app.post("/service-reviews", async (req, res) => {
             const newReview = req.body;
             const result = await reviewCollection.insertOne(newReview);
             res.send(result);
         })
+
+
 
 
 
