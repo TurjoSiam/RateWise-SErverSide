@@ -68,6 +68,13 @@ async function run() {
             res.send(result);
         })
 
+        app.delete("/allservices/:id", async(req, res) => {
+            const id = req.params.id;
+            const query = {_id: new ObjectId(id)};
+            const result = await serviceCollection.deleteOne(query);
+            res.send(result);
+        })
+
 
         // service review related api
 
@@ -95,11 +102,16 @@ async function run() {
             res.send(result);
         })
 
-
-
         app.post("/service-reviews", async (req, res) => {
             const newReview = req.body;
             const result = await reviewCollection.insertOne(newReview);
+            res.send(result);
+        })
+
+        app.delete("/service-reviews/:id", async(req, res) => {
+            const id = req.params.id;
+            const query = {_id: new ObjectId(id)};
+            const result = await reviewCollection.deleteOne(query);
             res.send(result);
         })
 
