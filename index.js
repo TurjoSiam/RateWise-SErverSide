@@ -62,11 +62,41 @@ async function run() {
             res.send(result);
         })
 
+        app.get("/allservices/updateservice/:id", async (req, res) => {
+            const id = req.params.id;
+            const query = {_id: new ObjectId(id)};
+            const result = await serviceCollection.findOne(query);
+            res.send(result);
+        })
+
         app.post("/allservices", async (req, res) => {
             const newService = req.body;
             const result = await serviceCollection.insertOne(newService);
             res.send(result);
         })
+
+        app.put("/allservices/:id", async (req, res) => {
+            const id = req.params.id;
+            const filter = {_id: new ObjectId(id)};
+            const options = {upsert: true};
+            const updatedService = req.body;
+            const update = {
+                $set: {
+                    website: updatedService.website,
+                    service_name: updatedService.service_name,
+                    company_logo: updatedService.company_logo,
+                    price: updatedService.price,
+                    category: updatedService.category,
+                    description: updatedService.description
+                }
+            }
+            const result = await serviceCollection.updateOne(filter, update, options);
+            res.send(result);
+        })
+
+
+
+
 
         app.delete("/allservices/:id", async(req, res) => {
             const id = req.params.id;
