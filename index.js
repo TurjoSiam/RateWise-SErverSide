@@ -94,16 +94,14 @@ async function run() {
             res.send(result);
         })
 
-
-
-
-
         app.delete("/allservices/:id", async(req, res) => {
             const id = req.params.id;
             const query = {_id: new ObjectId(id)};
             const result = await serviceCollection.deleteOne(query);
             res.send(result);
         })
+
+
 
 
         // service review related api
@@ -132,11 +130,35 @@ async function run() {
             res.send(result);
         })
 
+        app.get("/service-reviews/updatereview/:id", async(req, res) => {
+            const id = req.params.id;
+            const query = {_id: new ObjectId(id)};
+            const result = await reviewCollection.findOne(query);
+            res.send(result);
+        })
+
         app.post("/service-reviews", async (req, res) => {
             const newReview = req.body;
             const result = await reviewCollection.insertOne(newReview);
             res.send(result);
         })
+
+        app.put("/service-review/:id", async (req, res) => {
+            const id = req.params.id;
+            const filter = {_id: new ObjectId(id)};
+            const options = {upsert: true};
+            const updatedReview = req.body;
+            const update = {
+                $set: {
+                    review: updatedReview.review,
+                    date: updatedReview.date,
+                    rating: updatedReview.rating
+                }
+            }
+            const result = await reviewCollection.updateOne(filter, update, options);
+            res.send(result);
+        })
+
 
         app.delete("/service-reviews/:id", async(req, res) => {
             const id = req.params.id;
