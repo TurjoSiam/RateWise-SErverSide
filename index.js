@@ -48,16 +48,16 @@ async function run() {
             res.send(result);
         })
 
-        app.get("/allservices/:email", async (req, res) =>{
-            const email = req.params.email;
-            const query = {added_email: email};
+        app.get("/allservices/service", async (req, res) => {
+            const email = req.query.email;
+            const query = { added_email: email };
             const result = await serviceCollection.find(query).toArray();
             res.send(result);
         })
 
         app.get("/allservices/:id", async (req, res) => {
-            const id = req.params.id;
-            const query = { _id: new ObjectId(id) };
+            const jobId = req.params.id;
+            const query = { _id: new ObjectId(jobId) };
             const result = await serviceCollection.findOne(query);
             res.send(result);
         })
@@ -73,13 +73,13 @@ async function run() {
 
         app.get("/service-reviews", async (req, res) => {
             const email = req.query.email;
-            const query = email? { reviewerEmail: email } : {};
+            const query = email ? { reviewerEmail: email } : {};
             const result = await reviewCollection.find(query).toArray();
 
-            for(const review of result){
-                const query1 = {_id: new ObjectId(review.serviceId)};
+            for (const review of result) {
+                const query1 = { _id: new ObjectId(review.serviceId) };
                 const service = await serviceCollection.findOne(query1);
-                if(service){
+                if (service) {
                     review.company_name = service.company_name;
                     review.company_logo = service.company_logo;
                     review.service_name = service.service_name;
@@ -87,6 +87,15 @@ async function run() {
             }
             res.send(result);
         })
+
+        app.get("/service-reviews/:serviceId", async(req, res) => {
+            const id = req.params.serviceId;
+            const query = {serviceId: id};
+            const result = await reviewCollection.find(query).toArray();
+            res.send(result);
+        })
+
+
 
         app.post("/service-reviews", async (req, res) => {
             const newReview = req.body;
