@@ -11,8 +11,12 @@ const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 
 
 app.use(cors({
-    origin: ['http://localhost:5173', 'https://ratewise-turjosiam.netlify.app'],
-    credentials: true
+    origin: [
+        "http://localhost:5173",
+        "https://ratewise-turjosiam.netlify.app",
+        "https://assignment-11-beta.vercel.app"
+    ],
+    credentials: true,
 }));
 app.use(express.json());
 app.use(cookieParser());
@@ -33,8 +37,14 @@ const verifyToken = (req, res, next) => {
         next();
     })
 
-
 }
+
+const cookieOptions = {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
+   };
+  
 
 
 
@@ -63,22 +73,11 @@ async function run() {
         app.post("/jwt", async (req, res) => {
             const user = req.body;
             const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '5h' });
-            res.cookie('token', token, {
-                httpOnly: true,
-                secure: process.env.NODE_ENV === "production",
-                sameSite: process.env.NODE_ENV === "production" ? "none" : "strict"
-            });
-            res.send({ success: true });
-
+            res.cookie('token', token, cookieOptions).send({ success: true });
         })
 
         app.post("/logout", (req, res) => {
-            res.clearCookie('token', {
-                httpOnly: true,
-                secure: process.env.NODE_ENV === "production",
-                sameSite: process.env.NODE_ENV === "production" ? "none" : "strict"
-            })
-            res.send({ success: true })
+            res.clearCookie('token', {...cookieOptions, maxAge: 0}).send({ success: true });
         })
 
 
@@ -92,9 +91,10 @@ async function run() {
         app.get("/allservices", async (req, res) => {
             const filter = req.query.filter;
             const search = req.query.search;
+            const regexValue = String(search);
             let query = {
                 service_name: {
-                    $regex: search,
+                    $regex: regexValue,
                     $options: 'i'
                 }
             };
@@ -110,8 +110,8 @@ async function run() {
             const email = req.query.email;
             const query = { added_email: email };
 
-            if(req.user.email !== req.query.email){
-                return res.status(403).send({message: 'forbidden access'})
+            if (req.user.email !== req.query.email) {
+                return res.status(403).send({ message: 'forbidden access' })
             }
 
             const result = await serviceCollection.find(query).toArray();
@@ -173,8 +173,8 @@ async function run() {
             const email = req.query.email;
             const query = email ? { reviewerEmail: email } : {};
 
-            if(req.user.email !== req.query.email){
-                return res.status(403).send({message: 'forbidden access'})
+            if (req.user.email !== req.query.email) {
+                return res.status(403).send({ message: 'forbidden access' })
             }
 
             const result = await reviewCollection.find(query).toArray();
