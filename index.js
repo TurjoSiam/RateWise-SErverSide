@@ -1,6 +1,8 @@
 require('dotenv').config()
 const express = require('express');
 const cors = require('cors');
+const jwt = require('jsonwebtoken');
+const cookieParser = require('cookie-parser');
 
 const app = express();
 const port = process.env.PORT || 5000;
@@ -8,8 +10,12 @@ const port = process.env.PORT || 5000;
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 
 
-app.use(cors());
+app.use(cors({
+    origin: ['http://localhost:5173'],
+    credentials: true
+}));
 app.use(express.json());
+app.use(cookieParser());
 
 // DB_user: siam  DB_password: VcTNoYOgWtw1rCte
 
@@ -35,6 +41,21 @@ async function run() {
         // service related api
         const serviceCollection = client.db("reviewWebsite").collection("services");
         const reviewCollection = client.db("reviewWebsite").collection("reviews");
+
+        // auth related api
+        app.post("/jwt", async (req, res) => {
+            const user = req.body;
+            const token = jwt.sign(user, process.env.JWT_SECRET, {expiresIn: '1d'});
+            res.cookie('token', token, {
+                httpOnly: true,
+                secure: false
+            });
+            res.send({success: true});
+
+        })
+
+
+
 
         app.get("/services", async (req, res) => {
             const cursor = serviceCollection.find().limit(6);
