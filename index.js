@@ -17,7 +17,24 @@ app.use(cors({
 app.use(express.json());
 app.use(cookieParser());
 
-// DB_user: siam  DB_password: VcTNoYOgWtw1rCte
+
+const verifyToken = (req, res, next) => {
+    const token = req?.cookies?.token
+
+    if (!token) {
+        return res.status(401).send({ message: 'unauthorized access' })
+    }
+
+    jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
+        if (err) {
+            return res.status(401).send({ message: 'unauthorize access' })
+        }
+        req.user = decoded;
+        next();
+    })
+
+
+}
 
 
 
@@ -45,15 +62,22 @@ async function run() {
         // auth related api
         app.post("/jwt", async (req, res) => {
             const user = req.body;
-            const token = jwt.sign(user, process.env.JWT_SECRET, {expiresIn: '1d'});
+            const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '5h' });
             res.cookie('token', token, {
                 httpOnly: true,
                 secure: false
             });
-            res.send({success: true});
+            res.send({ success: true });
 
         })
 
+        app.post("/logout", (req, res) => {
+            res.clearCookie('token', {
+                httpOnly: true,
+                secure: false
+            })
+            res.send({ success: true })
+        })
 
 
 
@@ -72,7 +96,7 @@ async function run() {
                     $options: 'i'
                 }
             };
-            if(filter){
+            if (filter) {
                 query.category = filter;
             }
             const cursor = serviceCollection.find(query);
@@ -80,9 +104,14 @@ async function run() {
             res.send(result);
         })
 
-        app.get("/allservices/service", async (req, res) => {
+        app.get("/allservices/service", verifyToken, async (req, res) => {
             const email = req.query.email;
             const query = { added_email: email };
+
+            if(req.user.email !== req.query.email){
+                return res.status(403).send({message: 'forbidden access'})
+            }
+
             const result = await serviceCollection.find(query).toArray();
             res.send(result);
         })
@@ -96,7 +125,7 @@ async function run() {
 
         app.get("/allservices/updateservice/:id", async (req, res) => {
             const id = req.params.id;
-            const query = {_id: new ObjectId(id)};
+            const query = { _id: new ObjectId(id) };
             const result = await serviceCollection.findOne(query);
             res.send(result);
         })
@@ -109,8 +138,8 @@ async function run() {
 
         app.put("/allservices/:id", async (req, res) => {
             const id = req.params.id;
-            const filter = {_id: new ObjectId(id)};
-            const options = {upsert: true};
+            const filter = { _id: new ObjectId(id) };
+            const options = { upsert: true };
             const updatedService = req.body;
             const update = {
                 $set: {
@@ -126,9 +155,9 @@ async function run() {
             res.send(result);
         })
 
-        app.delete("/allservices/:id", async(req, res) => {
+        app.delete("/allservices/:id", async (req, res) => {
             const id = req.params.id;
-            const query = {_id: new ObjectId(id)};
+            const query = { _id: new ObjectId(id) };
             const result = await serviceCollection.deleteOne(query);
             res.send(result);
         })
@@ -138,9 +167,14 @@ async function run() {
 
         // service review related api
 
-        app.get("/service-reviews", async (req, res) => {
+        app.get("/service-reviews", verifyToken, async (req, res) => {
             const email = req.query.email;
             const query = email ? { reviewerEmail: email } : {};
+
+            if(req.user.email !== req.query.email){
+                return res.status(403).send({message: 'forbidden access'})
+            }
+
             const result = await reviewCollection.find(query).toArray();
 
             for (const review of result) {
@@ -155,16 +189,16 @@ async function run() {
             res.send(result);
         })
 
-        app.get("/service-reviews/:serviceId", async(req, res) => {
+        app.get("/service-reviews/:serviceId", async (req, res) => {
             const id = req.params.serviceId;
-            const query = {serviceId: id};
+            const query = { serviceId: id };
             const result = await reviewCollection.find(query).toArray();
             res.send(result);
         })
 
-        app.get("/service-reviews/updatereview/:id", async(req, res) => {
+        app.get("/service-reviews/updatereview/:id", async (req, res) => {
             const id = req.params.id;
-            const query = {_id: new ObjectId(id)};
+            const query = { _id: new ObjectId(id) };
             const result = await reviewCollection.findOne(query);
             res.send(result);
         })
@@ -177,8 +211,8 @@ async function run() {
 
         app.put("/service-review/:id", async (req, res) => {
             const id = req.params.id;
-            const filter = {_id: new ObjectId(id)};
-            const options = {upsert: true};
+            const filter = { _id: new ObjectId(id) };
+            const options = { upsert: true };
             const updatedReview = req.body;
             const update = {
                 $set: {
@@ -192,9 +226,9 @@ async function run() {
         })
 
 
-        app.delete("/service-reviews/:id", async(req, res) => {
+        app.delete("/service-reviews/:id", async (req, res) => {
             const id = req.params.id;
-            const query = {_id: new ObjectId(id)};
+            const query = { _id: new ObjectId(id) };
             const result = await reviewCollection.deleteOne(query);
             res.send(result);
         })
