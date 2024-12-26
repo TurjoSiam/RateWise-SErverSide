@@ -11,7 +11,7 @@ const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 
 
 app.use(cors({
-    origin: ['http://localhost:5173'],
+    origin: ['http://localhost:5173', 'https://ratewise-turjosiam.netlify.app'],
     credentials: true
 }));
 app.use(express.json());
@@ -65,7 +65,8 @@ async function run() {
             const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '5h' });
             res.cookie('token', token, {
                 httpOnly: true,
-                secure: false
+                secure: process.env.NODE_ENV === "production",
+                sameSite: process.env.NODE_ENV === "production" ? "none" : "strict"
             });
             res.send({ success: true });
 
@@ -74,7 +75,8 @@ async function run() {
         app.post("/logout", (req, res) => {
             res.clearCookie('token', {
                 httpOnly: true,
-                secure: false
+                secure: process.env.NODE_ENV === "production",
+                sameSite: process.env.NODE_ENV === "production" ? "none" : "strict"
             })
             res.send({ success: true })
         })
