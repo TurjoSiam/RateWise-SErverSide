@@ -83,7 +83,7 @@ async function run() {
 
 
         app.get("/services", async (req, res) => {
-            const cursor = serviceCollection.find().limit(6);
+            const cursor = serviceCollection.find().limit(8);
             const result = await cursor.toArray();
             res.send(result);
         })
