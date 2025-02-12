@@ -88,6 +88,12 @@ async function run() {
             res.send(result);
         })
 
+        app.get("/recentservices", async (req, res) => {
+            const cursor = serviceCollection.find().sort({_id: -1}).limit(4);
+            const result = await cursor.toArray();
+            res.send(result);
+        })
+
         app.get("/allservices", async (req, res) => {
             const filter = req.query.filter;
             const search = req.query.search;
