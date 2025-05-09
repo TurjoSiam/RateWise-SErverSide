@@ -43,8 +43,8 @@ const cookieOptions = {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
-   };
-  
+};
+
 
 
 
@@ -66,6 +66,7 @@ async function run() {
         console.log("Pinged your deployment. You successfully connected to MongoDB!");
 
         // service related api
+        const userCollection = client.db("reviewWebsite").collection("users");
         const serviceCollection = client.db("reviewWebsite").collection("services");
         const reviewCollection = client.db("reviewWebsite").collection("reviews");
 
@@ -77,11 +78,19 @@ async function run() {
         })
 
         app.post("/logout", (req, res) => {
-            res.clearCookie('token', {...cookieOptions, maxAge: 0}).send({ success: true });
+            res.clearCookie('token', { ...cookieOptions, maxAge: 0 }).send({ success: true });
         })
 
 
+        //user related api
+        app.post("users", async (req, res) => {
+            const newUser = req.body;
+            const result = await userCollection.insertOne(newUser);
+            res.send(result);
+        })
 
+
+        //service related api
         app.get("/services", async (req, res) => {
             const cursor = serviceCollection.find().limit(8);
             const result = await cursor.toArray();
@@ -89,7 +98,7 @@ async function run() {
         })
 
         app.get("/recentservices", async (req, res) => {
-            const cursor = serviceCollection.find().sort({_id: -1}).limit(4);
+            const cursor = serviceCollection.find().sort({ _id: -1 }).limit(4);
             const result = await cursor.toArray();
             res.send(result);
         })
